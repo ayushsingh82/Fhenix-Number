@@ -30,11 +30,11 @@ function submitNumber(InEuint32 calldata encryptedInput) external {
     if(player1== address(0)){
         player1==msg.sender;
         number1=FHE.asEuint32(encryptedInput);
-        FHE.allowtThis(number1); // grant contract access
+        FHE.allowThis(number1); // grant contract access
     } else {
         player2==msg.sender;
         number2=FHE.asEuint32(encryptedInput);
-        FHE.allowtThis(number2); // grant contract access
+        FHE.allowThis(number2); // grant contract access
 
         computeWinner(); //move logic to internal function 
     }
@@ -47,12 +47,12 @@ function computeWinner() internal {
         ebool isP2Greater = FHE.lt(number1, number2);
 
                // Difference is also calculated without leaking values
-               difference = FHE.sub(FHE.max(number1,number2)),FHE.min(number1,number2));
+               difference = FHE.sub(FHE.max(number1,number2),FHE.min(number1,number2));
 
                winnerEncrypted=FHE.select(
                 isP1Greater,
-                FHE.asEuint32(player1),
-                FHE.select(isP2Greater,FHE.asEuint32(player2),FHE.asEuint32(0))
+                FHE.asEuint32(1),
+                FHE.select(isP2Greater,FHE.asEuint32(2),FHE.asEuint32(0))
                );
 
                FHE.allowSender(difference);
