@@ -61,24 +61,45 @@ contract StonePaperScissors {
         euint8 p2 = game.move2;
 
         // Tie: if p1 == p2
-        if (p1.eq(p2).decrypt()) {
+        ebool isTie = FHE.eq(p1, p2);
+        FHE.decrypt(isTie);
+        (bool tieResult, bool tieDecrypted) = FHE.getDecryptResultSafe(isTie);
+        require(tieDecrypted, "Tie result not ready");
+        
+        if (tieResult) {
             emit GameResult(gameId, "It's a tie!");
             return;
         }
 
         // p1 = Stone (1), p2 = Scissor (3)
-        ebool stoneBeatsScissor = p1.eq(FHE.asEuint8(1)).and(p2.eq(FHE.asEuint8(3)));
+        ebool stoneBeatsScissor = FHE.and(
+            FHE.eq(p1, FHE.asEuint8(1)),
+            FHE.eq(p2, FHE.asEuint8(3))
+        );
 
         // p1 = Paper (2), p2 = Stone (1)
-        ebool paperBeatsStone = p1.eq(FHE.asEuint8(2)).and(p2.eq(FHE.asEuint8(1)));
+        ebool paperBeatsStone = FHE.and(
+            FHE.eq(p1, FHE.asEuint8(2)),
+            FHE.eq(p2, FHE.asEuint8(1))
+        );
 
         // p1 = Scissor (3), p2 = Paper (2)
-        ebool scissorBeatsPaper = p1.eq(FHE.asEuint8(3)).and(p2.eq(FHE.asEuint8(2)));
+        ebool scissorBeatsPaper = FHE.and(
+            FHE.eq(p1, FHE.asEuint8(3)),
+            FHE.eq(p2, FHE.asEuint8(2))
+        );
 
         // Combine all winning cases
-        ebool player1Wins = stoneBeatsScissor.or(paperBeatsStone).or(scissorBeatsPaper);
+        ebool player1Wins = FHE.or(
+            FHE.or(stoneBeatsScissor, paperBeatsStone),
+            scissorBeatsPaper
+        );
 
-        if (player1Wins.decrypt()) {
+        FHE.decrypt(player1Wins);
+        (bool winResult, bool winDecrypted) = FHE.getDecryptResultSafe(player1Wins);
+        require(winDecrypted, "Win result not ready");
+
+        if (winResult) {
             emit GameResult(gameId, "Player 1 Wins!");
         } else {
             emit GameResult(gameId, "Player 2 Wins!");
